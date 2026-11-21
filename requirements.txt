@@ -1,0 +1,8 @@
+torch>=2.0
+torchvision>=0.15
+numpy
+scipy
+pillow
+pyyaml
+pycocotools
+transformers>=4.30
