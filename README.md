@@ -93,19 +93,9 @@ python tools/test.py --config configs/zsd_dior.yaml --checkpoint work_dirs/zsd_d
 
 ```bash
 python tools/infer.py --config configs/zsd_dior.yaml --checkpoint work_dirs/zsd_dior/final.pth \
-    --dataset DIOR --images demo/scene.jpg --prompts "windmill, solar panel beside car"
 ```
 
 Prompts that are not in the cached bank are encoded with the frozen CLIP text encoder.
-
-## Proposal-based vs query-based head
-
-The routed feature map can also be given to a DETR-style transformer head (object queries, Hungarian
-set loss with classification, L1 and GIoU terms) instead of Faster R-CNN:
-
-```bash
-torchrun --nproc_per_node 4 tools/train.py --config configs/hmrnet_detr.yaml
-```
 
 
 ## Tests
