@@ -1,0 +1,106 @@
+# HMR-Net, multi-domain training on DIOR + DOTA + xView + NWPU, per-dataset evaluation.
+seed: 42
+work_dir: work_dirs/hmrnet_multidomain
+
+datasets:
+  - name: DIOR
+    train_ann: data/coco/dior_trainval.json
+    train_img: data/DIOR
+    test_ann: data/coco/dior_test.json
+    test_img: data/DIOR
+  - name: DOTA
+    train_ann: data/coco/dota_train.json
+    train_img: data/coco
+    test_ann: data/coco/dota_val.json
+    test_img: data/coco
+  - name: xView
+    train_ann: data/coco/xview_train.json
+    train_img: data/coco
+    test_ann: data/coco/xview_test.json
+    test_img: data/coco
+  - name: NWPU
+    train_ann: data/coco/nwpu_train.json
+    train_img: data/NWPU-VHR-10
+    test_ann: data/coco/nwpu_test.json
+    test_img: data/NWPU-VHR-10
+
+train_datasets: [DIOR, DOTA, xView, NWPU]
+test_datasets: [DIOR, DOTA, xView, NWPU]
+
+# Names are lower-cased and '-'/'_' become spaces before aliases are applied.
+label_aliases:
+  plane: airplane
+  baseballfield: baseball diamond
+  basketballcourt: basketball court
+  groundtrackfield: ground track field
+  storagetank: storage tank
+  tenniscourt: tennis court
+  golffield: golf field
+  trainstation: train station
+
+model:
+  input_size: 800
+  pretrained_backbone: true
+  trainable_layers: 3
+  nms_thresh: 0.5
+  score_thresh: 0.05
+  detections_per_img: 100
+  head: closed                # closed | prompt
+  joint_dim: 512
+  text_dim: 512
+  domain_routing:
+    num_experts: 6            # E_G
+    embedding_dim: 256        # d (matches FPN channels, embeddings are initialised from pooled features)
+    router_hidden: 256
+    tau: 1.0
+    distill_temperature: 2.0  # T > 1 in Eqs. (7)-(8)
+    top_k: 1                  # 1 = top-1 (paper); 2 = top-2; 0 = soft routing over all experts
+    ref_level: "3"            # FPN level used for the image descriptor u and for CEKD
+  scene_routing:
+    max_experts: 8            # E_S
+    min_regions: 2
+    theta_init: 1.0           # theta_R
+    adaptive: true            # false -> use fixed_regions
+    fixed_regions: 6
+    ref_level: "2"            # FPN level on which routing units are computed
+  cem:
+    enabled: false
+    max_alignments: 16
+    prompt_bank: data/prompts/clip_vitb32.pt
+    clip_model: openai/clip-vit-base-patch32
+    template: "an aerial image of a {}."
+    phrases_file: null
+
+loss_weights:
+  route: 1.0     # lambda_1
+  distill: 1.0   # lambda_2
+  align: 0.1     # lambda_3
+  coh: 0.1       # lambda_4
+
+augment:
+  hflip: 0.5
+  vflip: 0.5
+  rot90: 0.5
+  scale_range: [0.8, 1.2]
+
+train:
+  epochs: 200
+  lr: 0.001
+  momentum: 0.9
+  weight_decay: 0.0001
+  lr_steps: [120, 160]
+  lr_gamma: 0.1
+  batch_size_per_gpu: 2       # 4 GPUs x 2 = batch size 8
+  num_workers: 4
+  amp: false
+  grad_clip: 10.0
+  log_interval: 50
+  save_interval: 20
+  embedding_init_images: 500
+  stages:
+    domain_start: 20          # epochs [0, 20): stage 1 (shared backbone + head, L_det only)
+    scene_start: 60           # epochs [20, 60): stage 2 (+ domain routing, CEKD); then stage 3
+
+zsd:
+  enabled: false
+  unseen_classes: []

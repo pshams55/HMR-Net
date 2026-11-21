@@ -1,0 +1,7 @@
+# Cross-domain generalisation: train on DOTA + xView + NWPU, test on the unseen DIOR.
+# The DIOR embedding is not learned; tools/test.py initialises it from unlabeled DIOR
+# test images and keeps it fixed.
+_base_: hmrnet_multidomain.yaml
+work_dir: work_dirs/loo_dior
+train_datasets: [DOTA, xView, NWPU]
+test_datasets: [DIOR]

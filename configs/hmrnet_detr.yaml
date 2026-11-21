@@ -1,0 +1,26 @@
+# HMR-Net with a query-based (DETR-style) detection head instead of Faster R-CNN.
+# The routing architecture is unchanged; the fused feature map o is fed to the transformer.
+_base_: hmrnet_multidomain.yaml
+work_dir: work_dirs/hmrnet_detr
+
+model:
+  detector: detr
+  detr:
+    level: "3"            # FPN level of the routed features passed to the transformer
+    hidden_dim: 256
+    num_queries: 100
+    nheads: 8
+    enc_layers: 6
+    dec_layers: 6
+    dim_feedforward: 2048
+    dropout: 0.1
+    eos_coef: 0.1
+    loss_ce: 1.0
+    loss_bbox: 5.0
+    loss_giou: 2.0
+
+train:
+  optimizer: adamw
+  lr: 0.0001
+  weight_decay: 0.0001
+  grad_clip: 0.1

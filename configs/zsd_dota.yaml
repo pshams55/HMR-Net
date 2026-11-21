@@ -1,0 +1,16 @@
+# Open-category detection on DOTA with 11 seen / 4 unseen classes.
+_base_: hmrnet_multidomain.yaml
+work_dir: work_dirs/zsd_dota
+train_datasets: [DOTA]
+test_datasets: [DOTA]
+label_space_datasets: [DOTA]
+
+model:
+  head: prompt
+  cem:
+    enabled: true
+    phrases_file: data/prompts/phrases.json
+
+zsd:
+  enabled: true
+  unseen_classes: []   # fill with the 4 unseen DOTA classes

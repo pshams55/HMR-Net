@@ -1,0 +1,41 @@
+# Small-scale run on NWPU VHR-10 only (single domain), sized for a CPU or a single small GPU.
+# Differences from the paper setting: one dataset, 512x512 input, COCO-initialised detector,
+# short schedule. Numbers from this config are not comparable with the paper tables.
+_base_: hmrnet_multidomain.yaml
+work_dir: work_dirs/small_nwpu
+
+datasets:
+  - name: NWPU
+    train_ann: data/coco/nwpu_train.json
+    train_img: data/NWPU VHR-10 dataset
+    test_ann: data/coco/nwpu_test.json
+    test_img: data/NWPU VHR-10 dataset
+
+train_datasets: [NWPU]
+test_datasets: [NWPU]
+
+model:
+  input_size: 512
+  init: coco
+  domain_routing:
+    num_experts: 3
+    expert_hidden: 64
+  scene_routing:
+    expert_hidden: 64
+
+augment:
+  scale_range: null
+
+train:
+  epochs: 8
+  lr: 0.005
+  lr_steps: [6, 7]
+  batch_size_per_gpu: 4
+  num_workers: 4
+  warmup_iters: 100
+  log_interval: 20
+  save_interval: 4
+  embedding_init_images: 200
+  stages:
+    domain_start: 1
+    scene_start: 3

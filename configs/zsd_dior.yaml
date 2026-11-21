@@ -1,0 +1,18 @@
+# Open-category (zero-shot) detection on DIOR with the predefined seen/unseen split.
+# Training drops every image that contains an unseen class; testing uses images that
+# contain only unseen classes and reports RE@100 (IoU 0.4/0.5/0.6) and mAP.
+_base_: hmrnet_multidomain.yaml
+work_dir: work_dirs/zsd_dior
+train_datasets: [DIOR]
+test_datasets: [DIOR]
+label_space_datasets: [DIOR]
+
+model:
+  head: prompt
+  cem:
+    enabled: true
+    phrases_file: data/prompts/phrases.json
+
+zsd:
+  enabled: true
+  unseen_classes: []   # fill with the DIOR unseen classes of the seen/unseen split
